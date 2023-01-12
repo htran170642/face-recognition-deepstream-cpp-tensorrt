@@ -137,6 +137,9 @@ struct _GstDsFaceSearch
   /** Resolution at which frames/objects should be processed */
   gint processing_width;
   gint processing_height;
+  gchar* host;
+  gint port;
+  gchar* url;
 
   /** Maximum batch size. */
   guint max_batch_size;

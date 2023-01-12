@@ -69,6 +69,9 @@ enum
   PROP_PROCESSING_WIDTH,
   PROP_PROCESSING_HEIGHT,
   PROP_PROCESS_FULL_FRAME,
+  PROP_HOST,
+  PROP_PORT,
+  PROP_URL,
   PROP_BATCH_SIZE,
   PROP_GPU_DEVICE_ID
 };
@@ -95,6 +98,9 @@ enum
 #define DEFAULT_PROCESSING_WIDTH 112
 #define DEFAULT_PROCESSING_HEIGHT 112
 #define DEFAULT_PROCESS_FULL_FRAME TRUE
+#define DEFAULT_HOST "localhost"
+#define DEFAULT_PORT 18080
+#define DEFAULT_URL "/recognize"
 #define DEFAULT_GPU_ID 0
 #define DEFAULT_BATCH_SIZE 1
 
@@ -225,6 +231,25 @@ gst_dsfacesearch_class_init (GstDsFaceSearchClass * klass)
           "Enable to process full frame or disable to process objects detected"
           "by primary detector", DEFAULT_PROCESS_FULL_FRAME, (GParamFlags)
           (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+  
+  g_object_class_install_property (gobject_class, PROP_HOST,
+      g_param_spec_string ("host",
+          "Host of server",
+          "Path of cloud server to search face"
+          , DEFAULT_HOST, (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+  g_object_class_install_property (gobject_class, PROP_PORT,
+      g_param_spec_int ("port",
+          "Processing Port",
+          "Port number connect to server",
+          1, G_MAXINT, DEFAULT_PORT, (GParamFlags)
+          (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+  g_object_class_install_property (gobject_class, PROP_URL,
+      g_param_spec_string ("url",
+          "url of server",
+          "Path of cloud server to search face"
+          , DEFAULT_URL, (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   g_object_class_install_property (gobject_class, PROP_BATCH_SIZE,
       g_param_spec_uint ("batch-size", "Batch Size",
@@ -273,6 +298,9 @@ gst_dsfacesearch_init (GstDsFaceSearch * dsfacesearch)
   dsfacesearch->processing_width = DEFAULT_PROCESSING_WIDTH;
   dsfacesearch->processing_height = DEFAULT_PROCESSING_HEIGHT;
   dsfacesearch->process_full_frame = DEFAULT_PROCESS_FULL_FRAME;
+  dsfacesearch->host = DEFAULT_HOST;
+  dsfacesearch->port = DEFAULT_PORT;
+  dsfacesearch->url  = DEFAULT_URL;
   dsfacesearch->gpu_id = DEFAULT_GPU_ID;
   dsfacesearch->max_batch_size = DEFAULT_BATCH_SIZE;
   /* This quark is required to identify NvDsMeta when iterating through
@@ -300,6 +328,21 @@ gst_dsfacesearch_set_property (GObject * object, guint prop_id,
       break;
     case PROP_PROCESS_FULL_FRAME:
       dsfacesearch->process_full_frame = g_value_get_boolean (value);
+      break;
+    case PROP_HOST:
+      if (dsfacesearch->host) {
+        g_free(dsfacesearch->host);
+      }
+      dsfacesearch->host = (gchar *)g_value_dup_string (value);
+      break;
+    case PROP_PORT:
+      dsfacesearch->port = g_value_get_int (value);
+      break;
+    case PROP_URL:
+      if (dsfacesearch->url) {
+        g_free(dsfacesearch->url);
+      }
+      dsfacesearch->url = (gchar *)g_value_dup_string (value);
       break;
     case PROP_GPU_DEVICE_ID:
       dsfacesearch->gpu_id = g_value_get_uint (value);
@@ -335,6 +378,15 @@ gst_dsfacesearch_get_property (GObject * object, guint prop_id,
     case PROP_PROCESS_FULL_FRAME:
       g_value_set_boolean (value, dsfacesearch->process_full_frame);
       break;
+    case PROP_HOST:
+      g_value_set_string (value, dsfacesearch->host);
+      break;
+    case PROP_PORT:
+      g_value_set_int (value, dsfacesearch->port);
+      break;
+    case PROP_URL:
+      g_value_set_string (value, dsfacesearch->url);
+      break;
     case PROP_GPU_DEVICE_ID:
       g_value_set_uint (value, dsfacesearch->gpu_id);
       break;
@@ -357,12 +409,9 @@ gst_dsfacesearch_start (GstBaseTransform * btrans)
   std::string nvtx_str;
 
   g_print("Initializing HTTP client...");
-  std::string host = "localhost";
-  std::string port = "18080";
-  std::string url = "/recognize";
   dsfacesearch->http_client =
     std::unique_ptr<HttpClient>(
-      new HttpClient(host, port, url));
+      new HttpClient(std::string(dsfacesearch->host), std::to_string(dsfacesearch->port), std::string(dsfacesearch->url)));
 
 #ifdef WITH_OPENCV
   // OpenCV mat containing RGB data
@@ -848,11 +897,14 @@ gst_dsfacesearch_submit_input_buffer (GstBaseTransform * btrans,
   for (NvDsMetaList * l_obj = frame_meta->obj_meta_list; l_obj != NULL;
       l_obj = l_obj->next) {
     NvDsObjectMeta *obj_meta = (NvDsObjectMeta *) l_obj->data;
+    if (obj_meta->rect_params.width < MIN_INPUT_OBJECT_WIDTH ||
+          obj_meta->rect_params.height < MIN_INPUT_OBJECT_HEIGHT)
+        continue;
     float left = obj_meta->detector_bbox_info.org_bbox_coords.left;
     float top = obj_meta->detector_bbox_info.org_bbox_coords.top;
     float width = obj_meta->detector_bbox_info.org_bbox_coords.width;
     float height = obj_meta->detector_bbox_info.org_bbox_coords.height;
-    printf("%f %f %f %f \n", left, top, width, height);  
+    // printf("%f %f %f %f \n", left, top, width, height);  
     try {
       cv::Rect2f bbox = cv::Rect2f(left, top, width, height);
 

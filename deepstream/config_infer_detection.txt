@@ -1,0 +1,28 @@
+[property]
+gpu-id=0
+model-engine-file=/home/hiep/dev/test_face_recognition_tensorrt_deepstream/tensorrtx/retinaface/build/retina_r50_v8.4.engine
+#labelfile-path=labels.txt
+batch-size=1
+net-scale-factor=1.0
+offsets=104.0;117.0;123.0
+model-color-format=1
+num-detected-classes=1
+interval=0
+gie-unique-id=1
+process-mode=1
+network-type=0
+#network-mode 0: FP32 1: INT8 2: FP16
+network-mode=2
+maintain-aspect-ratio=1
+parse-bbox-func-name=NvDsInferParseCustomRetinaface
+custom-lib-path=/home/hiep/dev/test_face_recognition_tensorrt_deepstream/face-recognition/deepstream/build/nvdsinfer_customparser/libnvds_infercustomparser.so
+infer-dims=3;480;640
+uff-input-order=0
+uff-input-blob-name=data
+output-blob-names=prob
+# Enable tensor metadata output: 0: disable, 1 enable
+output-tensor-meta=0
+
+[class-attrs-all]
+pre-cluster-threshold=0.5
+nms-iou-threshold=0.4

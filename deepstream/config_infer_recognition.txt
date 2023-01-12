@@ -1,0 +1,17 @@
+[property]
+gpu-id=0
+#model-engine-file=/home/hiep/dev/test_face_recognition_tensorrt_deepstream/tensorrtx/arcface/build/arcface-r100.engine
+model-engine-file=/home/hiep/dev/test_face_recognition/face-recognition-cpp-tensorrt/conversion/arcface/arcface-ir50_asia-112x112-b1-fp16_v8.4.engine
+batch-size=1
+net-scale-factor=0.0078125
+offsets=127.5;127.5;127.5
+force-implicit-batch-dim=1
+model-color-format=0
+network-mode=2
+process-mode=2
+network-type=100
+output-tensor-meta=1
+#is-classifier=1
+classifier-async-mode=0
+output-blob-names=prob
+#custom-lib-path=/home/hiep/dev/test_face_recognition_tensorrt_deepstream/face-recognition/deepstream/build/liblibnvds_infercustomparser.so

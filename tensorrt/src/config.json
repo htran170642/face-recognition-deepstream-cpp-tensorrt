@@ -1,0 +1,22 @@
+{
+    "database_path": "../src/test.db",
+    "det_engine": "/home/hiep/dev/test_face_recognition_tensorrt_deepstream/tensorrtx/retinaface/build/retina_r50_v8.4.engine",
+    "det_inputName": "data",
+    "det_outputName":"prob",
+    "det_inputShape": [3, 480, 640],
+    "det_maxBatchSize": 1,
+    "det_threshold_nms": 0.4,
+    "det_threshold_bbox": 0.75,
+    "det_maxFacesPerScene": 4,
+    "rec_engine": "/home/hiep/dev/test_face_recognition/face-recognition-cpp-tensorrt/conversion/arcface/arcface-ir50_asia-112x112-b1-fp16_v8.4.engine",
+    "rec_inputName": "data",
+    "rec_outputName": "prob",
+    "rec_inputShape": [3, 112, 112],
+    "rec_outputDim": 512,
+    "rec_maxBatchSize": 1,
+    "rec_knownPersonThreshold": 0.65,
+    "gen_database": false,
+    "gen_imgSource": "/home/hiep/Downloads/test_face",
+    "gen_embeddingJsonFile": "embedding.json",
+    "api_imgIsCropped": false
+}
